@@ -1,52 +1,99 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Timer Quadricipite PWA</title>
-<link rel="manifest" href="manifest.json">
-<style>
-  body, html {margin:0;padding:0;font-family:Arial,sans-serif;height:100%;background:#000;color:white;}
-  #exercise-container {position:relative;width:100%;height:100vh;background-size:cover;background-position:center;display:flex;flex-direction:column;justify-content:center;align-items:center;text-shadow:2px2px4px#000;}
-  #timer {font-size:5em;margin:0.2em 0;background-color:rgba(0,0,0,0.4);padding:10px 20px;border-radius:10px;}
-  #exercise-name {font-size:2em;margin-bottom:0.2em;}
-  #exercise-desc {font-size:1.2em;max-width:80%;text-align:center;background-color:rgba(0,0,0,0.5);padding:10px 15px;border-radius:10px;}
-  #buttons {position:absolute;bottom:20px;display:flex;justify-content:center;gap:10px;}
-  button {padding:12px 20px;font-size:1em;border-radius:10px;border:none;cursor:pointer;}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quadricipite Timer</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin:0; display:flex; height:100vh; }
+    #sidebar { width: 30%; background:#f4f4f4; padding:20px; overflow-y:auto; }
+    #sidebar h2 { margin-top:0; }
+    .exercise-item { padding:8px; border-left:4px solid transparent; margin-bottom:6px; }
+    .active { border-left:4px solid green; background:#e0ffe0; font-weight:bold; }
+    #main { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+    #exercise-name { font-size:2em; margin:10px 0; }
+    #exercise-img { max-width:80%; max-height:50vh; object-fit:contain; margin:15px 0; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.2);}
+    #timer { font-size:3em; margin:10px 0; }
+    #exercise-desc { font-size:1.2em; text-align:center; max-width:80%; }
+    button { margin:5px; padding:10px 20px; font-size:1em; }
+  </style>
 </head>
 <body>
-<div id="exercise-container">
-  <div id="exercise-name">Pronto</div>
-  <div id="timer">00:00</div>
-  <div id="exercise-desc">Premi Start per iniziare</div>
-  <div id="buttons">
-    <button onclick="startTimer()" style="background-color:#4CAF50;color:white;">Start</button>
-    <button onclick="pauseTimer()" style="background-color:#f44336;color:white;">Pause</button>
-    <button onclick="resetTimer()" style="background-color:#2196F3;color:white;">Reset</button>
-    <button onclick="skipExercise()" style="background-color:#FF9800;color:white;">Skip</button>
+  <div id="sidebar">
+    <h2>Sequenza esercizi</h2>
+    <div id="exercise-list"></div>
   </div>
-</div>
-<audio id="beep" src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg" preload="auto" volume="1.0"></audio>
-<script>
-const workoutPlan=[
-{name:"Step isometrico",duration:30,img:"https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Step-up.jpg/800px-Step-up.jpg",desc:"Salire e scendere lentamente sul gradino mantenendo contratti i quadricipiti."},
-{name:"Recupero",duration:60,img:"https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Resting_person.jpg/800px-Resting_person.jpg",desc:"Respira profondamente e rilassa le gambe."},
-{name:"Cyclette",duration:300,img:"https://upload.wikimedia.org/wikipedia/commons/thumb/c/c6/Exercise_bike.jpg/800px-Exercise_bike.jpg",desc:"Pedala a ritmo moderato concentrandoti sulla spinta dei quadricipiti."},
-{name:"Stacco punto critico",duration:45,img:"https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Deadlift_1.jpg/800px-Deadlift_1.jpg",desc:"Sollevamento pesi controllato, mantieni la schiena dritta e contrai quadricipiti."},
-{name:"Recupero",duration:60,img:"https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/Resting_person.jpg/800px-Resting_person.jpg",desc:"Respira profondamente e rilassa le gambe."},
-{name:"Esercizio Alfabeto",duration:60,img:"https://upload.wikimedia.org/wikipedia/commons/thumb/2/2d/ABC_Alphabet.jpg/800px-ABC_Alphabet.jpg",desc:"Muovi la gamba come se scrivessi l'alfabeto, lentamente e controllato."}
-];
-const totalCycles=1;let currentIndex=0;let timeLeft=workoutPlan[0].duration;let timerInterval=null;let currentCycle=1;
-const beep=document.getElementById("beep");const container=document.getElementById("exercise-container");const nameDiv=document.getElementById("exercise-name");const descDiv=document.getElementById("exercise-desc");const timerDiv=document.getElementById("timer");
-function updateDisplay(){let minutes=Math.floor(timeLeft/60).toString().padStart(2,"0");let seconds=(timeLeft%60).toString().padStart(2,"0");timerDiv.textContent=`${minutes}:${seconds}`;nameDiv.textContent=workoutPlan[currentIndex].name;descDiv.textContent=workoutPlan[currentIndex].desc;container.style.backgroundImage=`url('${workoutPlan[currentIndex].img}')`}
-function nextExercise(){beep.play().catch(e=>console.log("Audio bloccato, premi start"));currentIndex++;if(currentIndex>=workoutPlan.length){currentIndex=0;currentCycle++;if(currentCycle>totalCycles){clearInterval(timerInterval);timerInterval=null;timerDiv.textContent="00:00";nameDiv.textContent="Allenamento completato!";descDiv.textContent="";container.style.backgroundImage="none";return}}timeLeft=workoutPlan[currentIndex].duration;updateDisplay()}
-function startTimer(){if(timerInterval)return;timerInterval=setInterval(()=>{timeLeft--;if(timeLeft<=0)nextExercise();updateDisplay()},1000)}
-function pauseTimer(){clearInterval(timerInterval);timerInterval=null}
-function resetTimer(){clearInterval(timerInterval);timerInterval=null;currentIndex=0;timeLeft=workoutPlan[0].duration;currentCycle=1;updateDisplay()}
-function skipExercise(){nextExercise()}
-updateDisplay();
-if('serviceWorker' in navigator){navigator.serviceWorker.register('service-worker.js').then(()=>{console.log('Service Worker registrato');})}
-</script>
+  <div id="main">
+    <div id="exercise-name"></div>
+    <img id="exercise-img" src="" alt="Esercizio">
+    <div id="timer"></div>
+    <div id="exercise-desc"></div>
+    <div>
+      <button onclick="startWorkout()">Start</button>
+      <button onclick="pauseWorkout()">Pause</button>
+      <button onclick="resetWorkout()">Reset</button>
+    </div>
+  </div>
+  <audio id="beep" src="https://actions.google.com/sounds/v1/alarms/medium_bell.ogg" preload="auto"></audio>
+  <script>
+    const workoutPlan = [
+      { name:"Step isometrico", duration:30, img:"https://upload.wikimedia.org/wikipedia/commons/3/37/Step-up.jpg", desc:"Step lento sul gradino, contrai quadricipiti." },
+      { name:"Cyclette", duration:60, img:"https://upload.wikimedia.org/wikipedia/commons/c/c6/Exercise_bike.jpg", desc:"Pedala a ritmo moderato, concentrandoti sui quadricipiti." },
+      { name:"Stacco punto critico", duration:45, img:"https://upload.wikimedia.org/wikipedia/commons/3/3f/Deadlift_1.jpg", desc:"Sollevamento controllato, schiena dritta, contrai quadricipiti." },
+      { name:"Esercizio Alfabeto", duration:60, img:"https://upload.wikimedia.org/wikipedia/commons/2/2d/ABC_Alphabet.jpg", desc:"Muovi la gamba come se scrivessi l'alfabeto, lentamente." }
+    ];
+    let currentIndex = 0;
+    let timeLeft = workoutPlan[0].duration;
+    let timerInterval = null;
+    const listDiv = document.getElementById("exercise-list");
+    const nameDiv = document.getElementById("exercise-name");
+    const imgEl = document.getElementById("exercise-img");
+    const timerDiv = document.getElementById("timer");
+    const descDiv = document.getElementById("exercise-desc");
+    const beep = document.getElementById("beep");
+    function renderList() {
+      listDiv.innerHTML = "";
+      workoutPlan.forEach((ex,i)=>{
+        const div = document.createElement("div");
+        div.className = "exercise-item" + (i===currentIndex ? " active":"");
+        div.textContent = `${i+1}. ${ex.name} (${ex.duration}s)`;
+        listDiv.appendChild(div);
+      });
+    }
+    function updateDisplay() {
+      let ex = workoutPlan[currentIndex];
+      nameDiv.textContent = ex.name;
+      imgEl.src = ex.img;
+      descDiv.textContent = ex.desc;
+      timerDiv.textContent = timeLeft+"s";
+      renderList();
+    }
+    function tick() {
+      if(timeLeft>0) {
+        timeLeft--;
+        timerDiv.textContent = timeLeft+"s";
+      } else {
+        beep.volume=0.4;
+        beep.play();
+        nextExercise();
+      }
+    }
+    function startWorkout() {
+      if(!timerInterval) timerInterval = setInterval(tick,1000);
+    }
+    function pauseWorkout() { clearInterval(timerInterval); timerInterval=null; }
+    function resetWorkout() { pauseWorkout(); currentIndex=0; timeLeft=workoutPlan[0].duration; updateDisplay(); }
+    function nextExercise() {
+      pauseWorkout();
+      if(currentIndex<workoutPlan.length-1) {
+        currentIndex++; timeLeft = workoutPlan[currentIndex].duration;
+        updateDisplay(); startWorkout();
+      } else {
+        nameDiv.textContent="Workout completato!";
+        imgEl.src=""; descDiv.textContent=""; timerDiv.textContent="";
+      }
+    }
+    updateDisplay();
+  </script>
 </body>
 </html>
