@@ -1,12 +1,8 @@
 {
-  "name": "Quadricipite Timer",
+  "name": "Quadricipite Timer Minimal",
   "short_name": "QuadTimer",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#4CAF50",
-  "icons": [
-    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
-  ]
+  "background_color": "#111111",
+  "theme_color": "#4CAF50"
 }
