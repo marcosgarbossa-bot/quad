@@ -1,16 +1,20 @@
+
 /*
- Final PWA behavior:
- - Timer fixed top, buttons under timer
- - Sequence includes work+rest internally, but list shows only work phases (remaining)
- - Recoveries are shown only by the timer (red) and produce beeps
- - Last exercise is "Cyclette (con sforzo)"
- - No final message; when sequence ends the list becomes empty and timer shows 00:00
+ Final PWA behavior updated:
+ - first block: Cyclette riscaldamento 3min (work)
+ - Sollevamento gamba sx con cuscino: 6 reps of 60s work + 15s rest
+ - Sollevamento gamba sx - serie breve: 12 reps of 20s work + 10s rest
+ - Wall squat gamba singola (sx): 10 reps of 30s work + 20s rest
+ - Cyclette (con sforzo): 2 reps of 5min work + 1min rest
+ - List shows only work phases; recoveries are handled in timer only
+ - Rep info displayed under timer
 */
 
 const beep = document.getElementById('beep');
 const seqDiv = document.getElementById('sequence');
 const timerLarge = document.getElementById('timer-large');
 const phaseSmall = document.getElementById('phase-small');
+const repInfo = document.getElementById('rep-info');
 const label = document.getElementById('label');
 const progress = document.getElementById('progress');
 const startBtn = document.getElementById('startBtn');
@@ -18,22 +22,21 @@ const pauseBtn = document.getElementById('pauseBtn');
 const resetBtn = document.getElementById('resetBtn');
 const skipBtn = document.getElementById('skipBtn');
 
-// Build full sequence (work+rest)
 function pushBlock(arr, title, workSec, restSec, reps){
   for(let i=0;i<reps;i++){
-    arr.push({title, duration: workSec, type: 'work', rep: i+1, reps});
-    if(restSec>0) arr.push({title, duration: restSec, type: 'rest', rep: i+1, reps});
+    arr.push({title, duration: workSec, type: 'work', rep: i+1, reps: reps});
+    if(restSec>0) arr.push({title, duration: restSec, type: 'rest', rep: i+1, reps: reps});
   }
 }
 
 let fullSeq = [];
 fullSeq.push({title: 'Cyclette (riscaldamento)', duration: 3*60, type: 'work'});
-pushBlock(fullSeq, 'Sollevamento gamba sx con cuscino', 30, 15, 12);
+pushBlock(fullSeq, 'Sollevamento gamba sx con cuscino', 60, 15, 6);
 pushBlock(fullSeq, 'Sollevamento gamba sx - serie breve', 20, 10, 12);
 pushBlock(fullSeq, 'Wall squat gamba singola (sx)', 30, 20, 10);
 pushBlock(fullSeq, 'Cyclette (con sforzo)', 5*60, 60, 2);
 
-// derive array of indices for work items to render list (remaining)
+// helper to get remaining work indices
 function getRemainingWorkIndices(fromIdx){
   const arr = [];
   for(let i=fromIdx;i<fullSeq.length;i++){
@@ -42,7 +45,7 @@ function getRemainingWorkIndices(fromIdx){
   return arr;
 }
 
-let idx = 0; // index in fullSeq (points to current segment work/rest)
+let idx = 0;
 let secondsLeft = fullSeq.length ? fullSeq[0].duration : 0;
 let timer = null;
 let running = false;
@@ -70,6 +73,7 @@ function updateTop(){
   if(idx >= fullSeq.length){
     timerLarge.textContent = '00:00';
     phaseSmall.textContent = '';
+    repInfo.textContent = '';
     label.textContent = '';
     document.body.style.background = '';
     renderWorkList();
@@ -79,7 +83,8 @@ function updateTop(){
   const cur = fullSeq[idx];
   timerLarge.textContent = formatTime(secondsLeft);
   phaseSmall.textContent = cur.type==='work' ? 'LAVORO' : 'RECUPERO';
-  label.textContent = cur.title + (cur.rep ? ' — rep ' + cur.rep + '/' + cur.reps : '');
+  repInfo.textContent = cur.rep ? ('Ripetizione ' + cur.rep + ' di ' + cur.reps) : '';
+  label.textContent = cur.title;
   if(cur.type==='work'){
     timerLarge.style.color = getComputedStyle(document.documentElement).getPropertyValue('--work');
     document.body.style.background = getComputedStyle(document.documentElement).getPropertyValue('--bg');
@@ -110,12 +115,10 @@ function tick(){
     updateTop();
   } else {
     const cur = fullSeq[idx];
-    // end-of-segment beeps: double for end of work, single for end of rest
     if(cur.type==='work'){ playBeep(2); } else { playBeep(1); }
     idx++;
     if(idx < fullSeq.length){
       secondsLeft = fullSeq[idx].duration;
-      // beep at start of next segment
       setTimeout(()=>playBeep(1), 120);
     } else {
       secondsLeft = 0;
@@ -133,7 +136,7 @@ function startSession(){
     running = true;
     startBtn.disabled = true;
     pauseBtn.disabled = false;
-    playBeep(1); // initial beep
+    playBeep(1);
   }
 }
 

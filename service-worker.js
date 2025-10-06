@@ -1,4 +1,5 @@
-const CACHE_NAME = "quad-final-cache-v2";
+
+const CACHE_NAME = "quad-final-cache-v4";
 const urlsToCache = ["./index.html","./style.css","./script.js","./manifest.json"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(urlsToCache))); });
 self.addEventListener("fetch", e => { e.respondWith(caches.match(e.request).then(r => r || fetch(e.request))); });
