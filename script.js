@@ -1,4 +1,12 @@
-/* Quadricipite Timer final - no end message, list items removed when completed */
+/*
+ Final PWA behavior:
+ - Timer fixed top, buttons under timer
+ - Sequence includes work+rest internally, but list shows only work phases (remaining)
+ - Recoveries are shown only by the timer (red) and produce beeps
+ - Last exercise is "Cyclette (con sforzo)"
+ - No final message; when sequence ends the list becomes empty and timer shows 00:00
+*/
+
 const beep = document.getElementById('beep');
 const seqDiv = document.getElementById('sequence');
 const timerLarge = document.getElementById('timer-large');
@@ -10,6 +18,7 @@ const pauseBtn = document.getElementById('pauseBtn');
 const resetBtn = document.getElementById('resetBtn');
 const skipBtn = document.getElementById('skipBtn');
 
+// Build full sequence (work+rest)
 function pushBlock(arr, title, workSec, restSec, reps){
   for(let i=0;i<reps;i++){
     arr.push({title, duration: workSec, type: 'work', rep: i+1, reps});
@@ -17,15 +26,24 @@ function pushBlock(arr, title, workSec, restSec, reps){
   }
 }
 
-let sequence = [];
-sequence.push({title: 'Cyclette (riscaldamento)', duration: 3*60, type: 'work'});
-pushBlock(sequence, 'Sollevamento gamba sx con cuscino', 30, 15, 12);
-pushBlock(sequence, 'Sollevamento gamba sx - serie breve', 20, 10, 12);
-pushBlock(sequence, 'Wall squat gamba singola (sx)', 30, 20, 10);
-pushBlock(sequence, 'Cyclette (defaticamento)', 5*60, 60, 2);
+let fullSeq = [];
+fullSeq.push({title: 'Cyclette (riscaldamento)', duration: 3*60, type: 'work'});
+pushBlock(fullSeq, 'Sollevamento gamba sx con cuscino', 30, 15, 12);
+pushBlock(fullSeq, 'Sollevamento gamba sx - serie breve', 20, 10, 12);
+pushBlock(fullSeq, 'Wall squat gamba singola (sx)', 30, 20, 10);
+pushBlock(fullSeq, 'Cyclette (con sforzo)', 5*60, 60, 2);
 
-let idx = 0;
-let secondsLeft = sequence.length ? sequence[0].duration : 0;
+// derive array of indices for work items to render list (remaining)
+function getRemainingWorkIndices(fromIdx){
+  const arr = [];
+  for(let i=fromIdx;i<fullSeq.length;i++){
+    if(fullSeq[i].type==='work') arr.push(i);
+  }
+  return arr;
+}
+
+let idx = 0; // index in fullSeq (points to current segment work/rest)
+let secondsLeft = fullSeq.length ? fullSeq[0].duration : 0;
 let timer = null;
 let running = false;
 
@@ -35,27 +53,30 @@ function formatTime(s){
   return String(m).padStart(2,'0') + ':' + String(sec).padStart(2,'0');
 }
 
-function renderList(){
+function renderWorkList(){
   seqDiv.innerHTML = '';
-  for(let i=idx;i<sequence.length;i++){
-    const item = sequence[i];
+  const indices = getRemainingWorkIndices(idx);
+  indices.forEach((fullIndex, order)=>{
+    const item = fullSeq[fullIndex];
     const el = document.createElement('div');
-    el.className = 'item' + (i===idx ? ' current' : '');
-    el.innerHTML = '<div>' + (i+1) + '. ' + item.title + (item.rep ? ' (rep ' + item.rep + '/' + item.reps + ')' : '') + '</div>'
-      + '<div style="opacity:0.75;font-size:0.95rem">' + (item.type==='work' ? 'Lavoro' : 'Recupero') + '</div>';
+    el.className = 'item' + (fullIndex===idx ? ' current' : '');
+    el.innerHTML = '<div>' + (order+1) + '. ' + item.title + (item.rep ? ' (rep ' + item.rep + '/' + item.reps + ')' : '') + '</div>'
+      + '<div style="opacity:0.75;font-size:0.95rem">Lavoro</div>';
     seqDiv.appendChild(el);
-  }
+  });
 }
 
 function updateTop(){
-  if(idx >= sequence.length){
+  if(idx >= fullSeq.length){
     timerLarge.textContent = '00:00';
     phaseSmall.textContent = '';
     label.textContent = '';
     document.body.style.background = '';
+    renderWorkList();
+    progress.textContent = '0 / 0';
     return;
   }
-  const cur = sequence[idx];
+  const cur = fullSeq[idx];
   timerLarge.textContent = formatTime(secondsLeft);
   phaseSmall.textContent = cur.type==='work' ? 'LAVORO' : 'RECUPERO';
   label.textContent = cur.title + (cur.rep ? ' — rep ' + cur.rep + '/' + cur.reps : '');
@@ -66,7 +87,10 @@ function updateTop(){
     timerLarge.style.color = getComputedStyle(document.documentElement).getPropertyValue('--rest');
     document.body.style.background = 'linear-gradient(180deg, rgba(217,83,79,0.04), var(--bg))';
   }
-  progress.textContent = (idx+1) + ' / ' + sequence.length;
+  const totalWork = getRemainingWorkIndices(0).length;
+  const remainingWork = getRemainingWorkIndices(idx).length;
+  progress.textContent = (totalWork - remainingWork + 1) + ' / ' + totalWork;
+  renderWorkList();
 }
 
 function playBeep(n=1){
@@ -85,34 +109,31 @@ function tick(){
     secondsLeft--;
     updateTop();
   } else {
-    const cur = sequence[idx];
-    if(cur.type==='work'){
-      playBeep(2);
-    } else {
-      playBeep(1);
-    }
+    const cur = fullSeq[idx];
+    // end-of-segment beeps: double for end of work, single for end of rest
+    if(cur.type==='work'){ playBeep(2); } else { playBeep(1); }
     idx++;
-    if(idx < sequence.length){
-      secondsLeft = sequence[idx].duration;
+    if(idx < fullSeq.length){
+      secondsLeft = fullSeq[idx].duration;
+      // beep at start of next segment
       setTimeout(()=>playBeep(1), 120);
     } else {
       secondsLeft = 0;
       clearInterval(timer);
       running = false;
     }
-    renderList();
     updateTop();
   }
 }
 
 function startSession(){
-  if(idx >= sequence.length){ idx = 0; secondsLeft = sequence.length ? sequence[0].duration : 0; }
+  if(idx >= fullSeq.length){ idx = 0; secondsLeft = fullSeq.length ? fullSeq[0].duration : 0; }
   if(!running){
-    timer = setInterval(tick, 1000);
+    timer = setInterval(tick,1000);
     running = true;
     startBtn.disabled = true;
     pauseBtn.disabled = false;
-    playBeep(1);
+    playBeep(1); // initial beep
   }
 }
 
@@ -121,17 +142,17 @@ function pauseSession(){
 }
 
 function resetSession(){
-  clearInterval(timer); running=false; idx=0; secondsLeft = sequence.length ? sequence[0].duration : 0;
+  clearInterval(timer); running=false; idx=0; secondsLeft = fullSeq.length ? fullSeq[0].duration : 0;
   startBtn.disabled=false; pauseBtn.disabled=true;
-  renderList(); updateTop();
+  updateTop();
 }
 
 function skipSegment(){
   clearInterval(timer); running=false;
   idx++;
-  if(idx < sequence.length) secondsLeft = sequence[idx].duration; else secondsLeft = 0;
+  if(idx < fullSeq.length) secondsLeft = fullSeq[idx].duration; else secondsLeft = 0;
   startBtn.disabled=false; pauseBtn.disabled=true;
-  renderList(); updateTop();
+  updateTop();
 }
 
 startBtn.addEventListener('click', startSession);
@@ -139,7 +160,6 @@ pauseBtn.addEventListener('click', pauseSession);
 resetBtn.addEventListener('click', resetSession);
 skipBtn.addEventListener('click', skipSegment);
 
-renderList();
 updateTop();
 
 if('serviceWorker' in navigator){

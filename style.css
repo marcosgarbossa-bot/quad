@@ -8,23 +8,18 @@
 }
 *{box-sizing:border-box}
 html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family: system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial}
-header#top-timer{position:sticky;top:0;z-index:10;background:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:18px;border-bottom:2px solid rgba(255,255,255,0.03);box-shadow:0 2px 6px rgba(0,0,0,0.3)}
+header#top-timer{position:sticky;top:0;z-index:20;background:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px;border-bottom:2px solid rgba(255,255,255,0.03);box-shadow:0 2px 6px rgba(0,0,0,0.3)}
 #timer-large{font-size:3.4rem;font-weight:800;transition:color 0.2s ease}
 #phase-small{font-size:0.95rem;color:var(--muted);margin-top:6px}
-main#main{max-width:900px;margin:0 auto;padding:12px;display:flex;gap:18px;flex-direction:column;align-items:stretch}
+#controls-top{margin-top:10px;display:flex;gap:8px}
+#controls-top button{background:#e6eef6;color:#071124;border:none;padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:700}
+main#main{max-width:900px;margin:12px auto;padding:12px;display:flex;flex-direction:column;gap:14px;align-items:stretch}
 #list-container{background:var(--card);padding:12px;border-radius:10px}
-#list-container h2{margin:0 0 8px 0;color:var(--muted)}
+#list-container h2{margin:0 0 8px 0;color:var(--muted);font-size:1rem}
 #sequence{display:flex;flex-direction:column;gap:6px}
 .item{padding:10px;border-radius:8px;background:transparent;color:var(--muted);display:flex;justify-content:space-between;align-items:center}
 .item.current{background:rgba(255,255,255,0.03);color:var(--text);font-weight:700;border-left:6px solid var(--work)}
-.item.done{display:none}
-#controls{display:flex;flex-direction:column;align-items:center;gap:10px;padding-top:6px}
+#info{display:flex;flex-direction:column;align-items:center;gap:6px}
 #label{color:var(--muted)}
-#buttons{display:flex;gap:8px}
-button{background:#e6eef6;color:#071124;border:none;padding:10px 14px;border-radius:8px;cursor:pointer;font-weight:700}
-button:disabled{opacity:0.5;cursor:not-allowed}
-#progress{color:var(--muted);font-size:0.95rem;margin-top:6px}
-@media (max-width:700px){
-  #timer-large{font-size:2.4rem}
-  main#main{padding:10px}
-}
+#progress{color:var(--muted);font-size:0.95rem}
+@media (max-width:700px){#timer-large{font-size:2.4rem}main#main{padding:10px}}
