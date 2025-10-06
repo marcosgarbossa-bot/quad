@@ -1,1 +1,47 @@
-<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Quadricipite Timer - Minimal PWA</title><link rel="manifest" href="manifest.json"><link rel="stylesheet" href="style.css"></head><body><main id="app"><h1>Quadricipite — Sessione</h1><div id="sequence" aria-live="polite"></div><div id="current-box" class="work"><div id="phase">Pronto</div><div id="timer">00:00</div><div id="label"></div></div><div id="controls"><button id="startBtn">Start</button><button id="pauseBtn" disabled>Pause</button><button id="resetBtn">Reset</button><button id="skipBtn">Skip</button></div><div id="progress">0 / 0</div></main><audio id="beep" preload="auto"><source src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" type="audio/ogg"><source src="https://actions.google.com/sounds/v1/alarms/beep_short.mp3" type="audio/mpeg"></audio><script src="script.js"></script></body></html>
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Quadricipite Timer</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header id="top-timer" class="work">
+    <div id="timer-large">00:00</div>
+    <div id="phase-small">Pronto</div>
+  </header>
+
+  <main id="main">
+    <section id="list-container">
+      <h2>Sequenza esercizi</h2>
+      <div id="sequence" aria-live="polite"></div>
+    </section>
+
+    <section id="controls">
+      <div id="label" class="muted">Premi Start per cominciare</div>
+      <div id="buttons">
+        <button id="startBtn">Start</button>
+        <button id="pauseBtn" disabled>Pause</button>
+        <button id="skipBtn">Salta</button>
+        <button id="resetBtn">Reset</button>
+      </div>
+      <div id="progress" class="muted"></div>
+    </section>
+  </main>
+
+  <div id="end-screen" hidden>
+    <h2>✅ Allenamento completato! Ottimo lavoro 💪</h2>
+    <button id="restartBtn">Ricomincia</button>
+  </div>
+
+  <!-- beep sportivo -->
+  <audio id="beep" preload="auto">
+    <source src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" type="audio/ogg">
+    <source src="https://actions.google.com/sounds/v1/alarms/beep_short.mp3" type="audio/mpeg">
+  </audio>
+
+  <script src="script.js"></script>
+</body>
+</html>
